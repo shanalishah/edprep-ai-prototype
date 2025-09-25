@@ -26,16 +26,15 @@ services:
     env: static
     plan: starter
     buildCommand: |
-      cd frontend
       npm install
       npm run build
-    staticPublishPath: frontend/out
+    staticPublishPath: out
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://edprep-ai-backend.onrender.com
     autoDeploy: true
     branch: main
-    rootDir: edprep-ai-prototype
+    rootDir: edprep-ai-prototype/frontend
 
   # Database (if needed later)
   - type: pserv
