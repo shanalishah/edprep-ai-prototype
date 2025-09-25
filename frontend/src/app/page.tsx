@@ -113,7 +113,7 @@ export default function Home() {
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow">
                     <div className="text-sm text-gray-600">Grammar Range</div>
-                    <div className="text-2xl font-bold text-blue-600">{result.grammatical_range?.toFixed(1) || 'N/A'}</div>
+                    <div className="text-2xl font-bold text-blue-600">{result.grammatical_range_accuracy?.toFixed(1) || result.grammatical_range?.toFixed(1) || 'N/A'}</div>
                   </div>
                 </div>
 
