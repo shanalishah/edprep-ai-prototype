@@ -6,7 +6,9 @@ import os
 import sys
 
 # Add the backend directory to the path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.join(current_dir, 'backend')
+sys.path.insert(0, backend_dir)
 
 # Import our models with better error handling
 try:
@@ -18,12 +20,13 @@ try:
         # If dotenv is not available, continue without it
         pass
     
-    from backend.app.models.essay_scorer import EssayScorer
-    from backend.app.models.feedback_generator import FeedbackGenerator
-    from backend.app.models.listening_test_data import get_listening_test, get_all_listening_tests
-    from backend.app.models.listening_scorer import ListeningScorer, UserListeningAnswer, ListeningTestSubmission
-    from backend.app.models.reading_test_data import get_reading_test, get_all_reading_tests
-    from backend.app.models.reading_scorer import ReadingScorer, UserAnswer, ReadingTestSubmission
+    # Import models with correct path
+    from app.models.essay_scorer import EssayScorer
+    from app.models.feedback_generator import FeedbackGenerator
+    from app.models.listening_test_data import get_listening_test, get_all_listening_tests
+    from app.models.listening_scorer import ListeningScorer, UserListeningAnswer, ListeningTestSubmission
+    from app.models.reading_test_data import get_reading_test, get_all_reading_tests
+    from app.models.reading_scorer import ReadingScorer, UserAnswer, ReadingTestSubmission
     MODELS_LOADED = True
 except ImportError as e:
     st.error(f"Error loading models: {e}")
