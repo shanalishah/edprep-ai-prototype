@@ -1,0 +1,46 @@
+services:
+  # Backend API Service
+  - type: web
+    name: edprep-ai-backend
+    env: python
+    plan: starter
+    buildCommand: |
+      cd backend
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DEPLOYMENT_MODE
+        value: true
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    healthCheckPath: /health
+    autoDeploy: true
+    branch: main
+    rootDir: edprep-ai-prototype
+
+  # Frontend Service
+  - type: web
+    name: edprep-ai-frontend
+    env: static
+    plan: starter
+    buildCommand: |
+      cd frontend
+      npm install
+      npm run build
+    staticPublishPath: frontend/out
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://edprep-ai-backend.onrender.com
+    autoDeploy: true
+    branch: main
+    rootDir: edprep-ai-prototype
+
+  # Database (if needed later)
+  - type: pserv
+    name: edprep-ai-db
+    env: postgresql
+    plan: starter
+    autoDeploy: true
+    branch: main
