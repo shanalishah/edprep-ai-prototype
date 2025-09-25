@@ -12,16 +12,24 @@ from dotenv import load_dotenv
 from .models.essay_scorer import EssayScorer
 from .models.feedback_generator import FeedbackGenerator
 
-# Try to import ML models, but don't fail if they don't exist
-try:
-    from .models.ml_essay_scorer import MLEssayScorer
-    from .models.production_essay_scorer import ProductionEssayScorer
-    from .models.realistic_ielts_scorer import RealisticIELTSScorer
-    from .models.optimized_semantic_analyzer import OptimizedSemanticAnalyzer
-    from .models.optimized_feedback_generator import OptimizedFeedbackGenerator
-    ML_MODELS_AVAILABLE = True
-except ImportError as e:
-    print(f"⚠️ ML models not available: {e}")
+# Check if we're in deployment mode (no ML models)
+DEPLOYMENT_MODE = os.getenv('DEPLOYMENT_MODE', 'false').lower() == 'true'
+
+# Try to import ML models only if not in deployment mode
+if not DEPLOYMENT_MODE:
+    try:
+        from .models.ml_essay_scorer import MLEssayScorer
+        from .models.production_essay_scorer import ProductionEssayScorer
+        from .models.realistic_ielts_scorer import RealisticIELTSScorer
+        from .models.optimized_semantic_analyzer import OptimizedSemanticAnalyzer
+        from .models.optimized_feedback_generator import OptimizedFeedbackGenerator
+        ML_MODELS_AVAILABLE = True
+        print("✅ ML models imported successfully")
+    except ImportError as e:
+        print(f"⚠️ ML models not available: {e}")
+        ML_MODELS_AVAILABLE = False
+else:
+    print("🚀 Deployment mode: Skipping ML model imports")
     ML_MODELS_AVAILABLE = False
 # from .models.reading_test_data import get_reading_test, get_all_reading_tests, ReadingTest
 # from .models.reading_scorer import ReadingScorer, UserAnswer, ReadingTestResult
@@ -64,8 +72,8 @@ if os.path.exists(cambridge_audio_path):
 essay_scorer = EssayScorer()
 feedback_generator = FeedbackGenerator()
 
-# Initialize ML models only if available
-if ML_MODELS_AVAILABLE:
+# Initialize ML models only if available and not in deployment mode
+if ML_MODELS_AVAILABLE and not DEPLOYMENT_MODE:
     try:
         ml_essay_scorer = MLEssayScorer()
         production_essay_scorer = ProductionEssayScorer()
@@ -77,7 +85,10 @@ if ML_MODELS_AVAILABLE:
         print(f"⚠️ Failed to load ML models: {e}")
         ML_MODELS_AVAILABLE = False
 else:
-    print("⚠️ Using lightweight mode - ML models not available")
+    if DEPLOYMENT_MODE:
+        print("🚀 Deployment mode: Using lightweight rule-based scoring only")
+    else:
+        print("⚠️ Using lightweight mode - ML models not available")
 # reading_scorer = ReadingScorer()  # Reading test scorer
 
 class EssaySubmission(BaseModel):
@@ -118,13 +129,24 @@ async def get_model_status():
     Get information about the scoring models
     """
     # Check which model is available
-    if ML_MODELS_AVAILABLE and 'production_essay_scorer' in locals() and production_essay_scorer.is_loaded:
+    if DEPLOYMENT_MODE:
+        return {
+            "production_model_loaded": False,
+            "basic_ml_model_loaded": False,
+            "official_ielts_model_loaded": True,
+            "scoring_method": "Official IELTS Criteria (Based on Official Band Descriptors) - Deployment Mode",
+            "model_path": None,
+            "features": "Official IELTS Band Descriptors + Rule-based scoring",
+            "deployment_mode": True
+        }
+    elif ML_MODELS_AVAILABLE and 'production_essay_scorer' in locals() and production_essay_scorer.is_loaded:
         return {
             "production_model_loaded": True,
             "official_ielts_model_loaded": True,
             "scoring_method": "Production ML (Advanced Random Forest) + Official IELTS Criteria",
             "model_path": str(production_essay_scorer.models_dir),
-            "features": "535 advanced features + TF-IDF + Official IELTS Band Descriptors"
+            "features": "535 advanced features + TF-IDF + Official IELTS Band Descriptors",
+            "deployment_mode": False
         }
     elif ML_MODELS_AVAILABLE and 'ml_essay_scorer' in locals() and ml_essay_scorer.is_loaded:
         return {
@@ -133,7 +155,8 @@ async def get_model_status():
             "official_ielts_model_loaded": True,
             "scoring_method": "Basic ML (Random Forest) + Official IELTS Criteria",
             "model_path": str(ml_essay_scorer.models_dir),
-            "features": "24 basic features + Official IELTS Band Descriptors"
+            "features": "24 basic features + Official IELTS Band Descriptors",
+            "deployment_mode": False
         }
     else:
         return {
@@ -142,7 +165,8 @@ async def get_model_status():
             "official_ielts_model_loaded": True,
             "scoring_method": "Official IELTS Criteria (Based on Official Band Descriptors) - Lightweight Mode",
             "model_path": None,
-            "features": "Official IELTS Band Descriptors + Rule-based scoring"
+            "features": "Official IELTS Band Descriptors + Rule-based scoring",
+            "deployment_mode": False
         }
 
 @app.post("/assess", response_model=ScoringResponse)
@@ -152,14 +176,14 @@ async def assess_essay(essay_data: EssaySubmission):
     """
     try:
         # Use available scorer (ML if available, otherwise rule-based)
-        if ML_MODELS_AVAILABLE and 'realistic_ielts_scorer' in locals():
+        if ML_MODELS_AVAILABLE and not DEPLOYMENT_MODE and 'realistic_ielts_scorer' in locals():
             scores = realistic_ielts_scorer.score_essay_realistic(
                 essay=essay_data.essay,
                 prompt=essay_data.prompt,
                 task_type=essay_data.task_type
             )
         else:
-            # Fallback to rule-based scoring
+            # Fallback to rule-based scoring (deployment mode)
             scores = essay_scorer.score_essay(
                 essay=essay_data.essay,
                 prompt=essay_data.prompt,
