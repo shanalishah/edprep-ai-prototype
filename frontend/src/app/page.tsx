@@ -29,7 +29,7 @@ export default function Home() {
     setResult(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://edprep-ai-backend.onrender.com';
+      const apiUrl = 'https://edprep-ai-backend.onrender.com';
       const response = await fetch(`${apiUrl}/assess`, {
         method: 'POST',
         headers: {
