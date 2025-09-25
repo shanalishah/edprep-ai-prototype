@@ -126,43 +126,93 @@ class SimpleEssayScorer:
         total_words = sum(len(s.split()) for s in sentences)
         return total_words / len(sentences)
     
+    def is_gibberish_or_low_quality(self, essay: str) -> bool:
+        """Detect if essay is gibberish or extremely low quality"""
+        words = re.findall(r'\b\w+\b', essay.lower())
+        if len(words) < 3:
+            return True
+        
+        # Check for repeated characters (like "asdasdasd")
+        for word in words:
+            if len(word) > 3 and len(set(word)) < len(word) * 0.4:  # Too many repeated chars
+                return True
+        
+        # Check for non-English patterns
+        english_letters = sum(1 for c in essay if c.isalpha() and c.isascii())
+        total_chars = sum(1 for c in essay if c.isalpha())
+        if total_chars > 0 and english_letters / total_chars < 0.8:
+            return True
+        
+        # Check for meaningful word ratio
+        meaningful_words = [w for w in words if len(w) > 2 and w.isalpha()]
+        if len(words) > 0 and len(meaningful_words) / len(words) < 0.5:
+            return True
+        
+        return False
+    
     def score_task_achievement(self, essay: str, prompt: str, task_type: str) -> float:
         """Score Task Achievement based on word count and content relevance"""
+        # Check for gibberish first
+        if self.is_gibberish_or_low_quality(essay):
+            return 1.0
+        
         word_count = self.count_words(essay)
         
-        # Base score on word count
+        # Much stricter scoring based on word count
         if task_type == "Task 1":
-            if word_count >= 150:
-                base_score = 6.0
-            elif word_count >= 120:
-                base_score = 5.5
+            if word_count < 50:
+                return 2.0
+            elif word_count < 100:
+                return 3.0
+            elif word_count < 150:
+                return 4.0
+            elif word_count < 200:
+                return 5.0
             else:
-                base_score = 4.0
+                base_score = 6.0
         else:  # Task 2
-            if word_count >= 250:
-                base_score = 6.0
-            elif word_count >= 200:
-                base_score = 5.5
+            if word_count < 100:
+                return 2.0
+            elif word_count < 150:
+                return 3.0
+            elif word_count < 200:
+                return 4.0
+            elif word_count < 250:
+                return 5.0
             else:
-                base_score = 4.0
+                base_score = 6.0
         
         # Adjust based on content relevance (simple keyword matching)
         prompt_words = set(re.findall(r'\b\w+\b', prompt.lower()))
         essay_words = set(re.findall(r'\b\w+\b', essay.lower()))
-        relevance = len(prompt_words.intersection(essay_words)) / len(prompt_words)
+        if len(prompt_words) > 0:
+            relevance = len(prompt_words.intersection(essay_words)) / len(prompt_words)
+            return min(9.0, base_score + relevance * 1.5)
         
-        return min(9.0, base_score + relevance * 2)
+        return base_score
     
     def score_coherence_cohesion(self, essay: str) -> float:
         """Score Coherence & Cohesion"""
+        # Check for gibberish first
+        if self.is_gibberish_or_low_quality(essay):
+            return 1.0
+        
         linking_count = self.count_linking_words(essay)
         paragraphs = self.count_paragraphs(essay)
         sentences = self.count_sentences(essay)
+        word_count = self.count_words(essay)
         
-        # Base score
-        base_score = 5.0
+        # Much stricter base scoring
+        if word_count < 50:
+            base_score = 2.0
+        elif word_count < 100:
+            base_score = 3.0
+        elif word_count < 150:
+            base_score = 4.0
+        else:
+            base_score = 5.0
         
-        # Linking words bonus
+        # Linking words bonus (more realistic)
         if linking_count >= 5:
             base_score += 1.5
         elif linking_count >= 3:
@@ -180,20 +230,33 @@ class SimpleEssayScorer:
     
     def score_lexical_resource(self, essay: str) -> float:
         """Score Lexical Resource"""
+        # Check for gibberish first
+        if self.is_gibberish_or_low_quality(essay):
+            return 1.0
+        
         vocabulary_richness = self.calculate_vocabulary_richness(essay)
         academic_words = self.count_academic_words(essay)
         word_count = self.count_words(essay)
         
-        # Base score
-        base_score = 5.0
+        # Much stricter base scoring
+        if word_count < 50:
+            base_score = 2.0
+        elif word_count < 100:
+            base_score = 3.0
+        elif word_count < 150:
+            base_score = 4.0
+        else:
+            base_score = 5.0
         
-        # Vocabulary richness bonus
-        if vocabulary_richness >= 0.7:
+        # Vocabulary richness bonus (more realistic)
+        if vocabulary_richness >= 0.8:
             base_score += 2.0
-        elif vocabulary_richness >= 0.6:
+        elif vocabulary_richness >= 0.7:
             base_score += 1.5
-        elif vocabulary_richness >= 0.5:
+        elif vocabulary_richness >= 0.6:
             base_score += 1.0
+        elif vocabulary_richness >= 0.5:
+            base_score += 0.5
         
         # Academic vocabulary bonus
         academic_ratio = academic_words / max(word_count, 1)
@@ -206,13 +269,25 @@ class SimpleEssayScorer:
     
     def score_grammatical_range(self, essay: str) -> float:
         """Score Grammatical Range & Accuracy"""
+        # Check for gibberish first
+        if self.is_gibberish_or_low_quality(essay):
+            return 1.0
+        
         avg_sentence_length = self.calculate_avg_sentence_length(essay)
         sentences = self.count_sentences(essay)
+        word_count = self.count_words(essay)
         
-        # Base score
-        base_score = 5.0
+        # Much stricter base scoring
+        if word_count < 50:
+            base_score = 2.0
+        elif word_count < 100:
+            base_score = 3.0
+        elif word_count < 150:
+            base_score = 4.0
+        else:
+            base_score = 5.0
         
-        # Sentence variety bonus
+        # Sentence variety bonus (more realistic)
         if avg_sentence_length >= 15:
             base_score += 1.5
         elif avg_sentence_length >= 12:
@@ -244,11 +319,20 @@ class SimpleFeedbackGenerator:
         """Generate simple feedback based on scores"""
         word_count = len(essay.split())
         
+        # Check if this is a very low-quality essay
+        if any(score <= 2.0 for score in scores.values()):
+            return {
+                'feedback': "**This essay appears to be of very low quality or may contain gibberish. Please write a proper essay with meaningful content, correct grammar, and relevant ideas that address the prompt.**",
+                'detailed_feedback': "**This essay appears to be of very low quality or may contain gibberish. Please write a proper essay with meaningful content, correct grammar, and relevant ideas that address the prompt.**"
+            }
+        
         feedback_parts = []
         
         # Task Achievement feedback
         ta_score = scores['task_achievement']
-        if ta_score < 5.0:
+        if ta_score <= 3.0:
+            feedback_parts.append("**Task Achievement**: Your essay does not adequately address the prompt. You need to write a complete essay with relevant content that answers the question.")
+        elif ta_score < 5.0:
             feedback_parts.append("**Task Achievement**: Your essay needs to better address the prompt. Make sure to cover all parts of the question and provide relevant examples.")
         elif ta_score < 6.5:
             feedback_parts.append("**Task Achievement**: Good attempt at addressing the prompt. Try to provide more specific examples and ensure all parts of the question are covered.")
@@ -257,7 +341,9 @@ class SimpleFeedbackGenerator:
         
         # Coherence & Cohesion feedback
         cc_score = scores['coherence_cohesion']
-        if cc_score < 5.0:
+        if cc_score <= 3.0:
+            feedback_parts.append("**Coherence & Cohesion**: Your essay lacks proper structure and organization. Write complete sentences and organize your ideas into clear paragraphs.")
+        elif cc_score < 5.0:
             feedback_parts.append("**Coherence & Cohesion**: Your essay needs better organization. Use more linking words and ensure clear paragraph structure.")
         elif cc_score < 6.5:
             feedback_parts.append("**Coherence & Cohesion**: Good organization overall. Try using more linking words to connect your ideas better.")
@@ -266,7 +352,9 @@ class SimpleFeedbackGenerator:
         
         # Lexical Resource feedback
         lr_score = scores['lexical_resource']
-        if lr_score < 5.0:
+        if lr_score <= 3.0:
+            feedback_parts.append("**Lexical Resource**: Your vocabulary is very limited. Use proper English words and avoid repetition. Write meaningful sentences.")
+        elif lr_score < 5.0:
             feedback_parts.append("**Lexical Resource**: Try to use more varied vocabulary and avoid repetition. Include more academic words.")
         elif lr_score < 6.5:
             feedback_parts.append("**Lexical Resource**: Good vocabulary range. Try to use more sophisticated and academic vocabulary.")
@@ -275,7 +363,9 @@ class SimpleFeedbackGenerator:
         
         # Grammatical Range feedback
         gr_score = scores['grammatical_range_accuracy']
-        if gr_score < 5.0:
+        if gr_score <= 3.0:
+            feedback_parts.append("**Grammatical Range**: Your grammar needs significant improvement. Write complete, grammatically correct sentences.")
+        elif gr_score < 5.0:
             feedback_parts.append("**Grammatical Range**: Work on using more complex sentence structures and check for grammatical errors.")
         elif gr_score < 6.5:
             feedback_parts.append("**Grammatical Range**: Good grammatical control. Try to use more varied sentence structures.")
