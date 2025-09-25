@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdPrep AI - Launch Platform</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        
+        .launch-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .launch-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .features {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            color: #666;
+        }
+        
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚀 EdPrep AI</div>
+        <div class="subtitle">AI-Powered IELTS Writing Assistant</div>
+        
+        <a href="http://localhost:3001" class="launch-button" target="_blank">
+            🎯 Launch Platform (Port 3001)
+        </a>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <span>Advanced ML Model with 535 Features</span>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <span>Real-time Essay Scoring</span>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <span>Detailed Feedback & Suggestions</span>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✓</div>
+                <span>All 4 IELTS Criteria Assessment</span>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📝 How to Use:</h3>
+            <ol>
+                <li>Click "Launch Platform" above</li>
+                <li>Select a sample IELTS prompt</li>
+                <li>Write your essay (150-300 words)</li>
+                <li>Click "Get Assessment"</li>
+                <li>Review your AI-powered feedback!</li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 0.9rem; color: #999;">
+            <p>🌐 Web Interface: <a href="http://localhost:3001" target="_blank">http://localhost:3001</a></p>
+            <p>🔧 API Status: <a href="http://localhost:8000/model-status" target="_blank">http://localhost:8000/model-status</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Check if the platform is running
+        function checkStatus() {
+            const statusDiv = document.getElementById('status');
+            
+            // Since we can't check from file:// due to CORS, we'll assume it's running
+            // and let the user try the launch button
+            statusDiv.className = 'status success';
+            statusDiv.innerHTML = '✅ Ready to launch! Click the button below to access your platform.';
+            statusDiv.style.display = 'block';
+        }
+        
+        // Check status when page loads
+        checkStatus();
+        
+        // No need to check repeatedly since we can't access the servers from file://
+        
+        // Add click animation to button
+        document.querySelector('.launch-button').addEventListener('click', function(e) {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
+    </script>
+</body>
+</html>

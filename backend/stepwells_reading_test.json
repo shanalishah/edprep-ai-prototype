@@ -1,0 +1,70 @@
+{
+  "id": 1,
+  "title": "Cambridge IELTS 10 - Stepwells Reading Test",
+  "time_limit": 60,
+  "total_questions": 5,
+  "difficulty": "medium",
+  "passages": [
+    {
+      "id": 1,
+      "title": "Stepwells",
+      "content": "A millennium ago, stepwells were fundamental to life in the driest parts of India. Richard Cox travelled to north-western India to document these spectacular monuments from a bygone era During the sixth and seventh centuries, the inhabitants of the modern-day states of Gujarat and Rajasthan in north-western India developed a method of gaining access to clean, fresh groundwater during the dry season for drinking, bathing, watering animals and irrigation. However, the significance of this invention - the stepwell - goes beyond its utilitarian application. Unique to this region, stepwells are often architecturally complex and vary widely in size and shape. During their heyday, they were places of gathering, of leisure and relaxation and of worship for villagers of all but the lowest classes. Most stepwells are found dotted round the desert areas of Gujarat (where they are called vav) and Rajasthan (where they are called baori), while a few also survive in Delhi. Some were located in or near villages as public spaces for the community； others were positioned beside roads as resting places for travellers. As their name suggests, stepwells comprise a series of stone steps descending from ground level to the water source (normally an underground aquifer) as it recedes following the rains. When the water level was high, the user needed only to descend a few steps to reach it ； when it was low, several levels would have to be negotiated. Some wells are vast, open craters with hundreds of steps paving each sloping side, often in tiers. Others are more elaborate, with long stepped passages leading to the water via several storeys. Built from stone and supported by pillars, they also included pavilions that sheltered visitors from the relentless heat. But perhaps the most impressive features are the intricate decorative sculptures that embellish many stepwells, showing activities from fighting and dancing to everyday acts such as women combing their hair or churning butter. Down the centuries, thousands of wells were constructed throughout north­ western India, but the majority have now fallen into disuse； many are derelict and dry, as groundwater has been diverted for industrial use and the wells no longer reach the water table. Their condition hasn’t been helped by recent dry spells： southern Rajasthan suffered an eight-year drought between 1996 and 2004. However, some important sites in Gujarat have recently undergone major restoration, and the state government announced in June last year that it plans to restore the stepwells throughout the In Patan, the state’s ancient capital, the stepwell of Rani Ki Vav (Queen’s Stepwell) is perhaps the finest current example. It was built by Queen Udayamati during the late 11th century, but became silted up following a flood during the 13th century. But the Archaeological Survey of India began restoring it in the 1960s, and today it is in pristine condition. At 65 metres long, 20 metres wide and 27 metres deep, Rani Ki Vav features 500 sculptures carved into niches throughout the monument. Incredibly, in January 2001, this ancient structure survived an earthquake that measured 7.6 on the Another example is the Surya Kund in Modhera, northern Gujarat, next to the Sun Temple, built by King Bhima I in 1026 to honour the sun god Surya. It actually resembles a tank (kund means reservoir or pond) rather than a well, but displays the hallmarks of stepwell architecture, including four sides of steps that descend to the bottom in a stunning geometrical formation. The terraces house 108 small, intricately carved shrines between the",
+      "word_count": 581,
+      "difficulty_level": "medium",
+      "topic": "History and Culture"
+    }
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "passage_id": 1,
+      "type": "multiple_choice",
+      "question_text": "What was the primary purpose of stepwells in ancient India?",
+      "options": [
+        "A) Religious ceremonies",
+        "B) Access to groundwater during dry seasons",
+        "C) Architectural decoration",
+        "D) Social gatherings"
+      ],
+      "correct_answer": "B",
+      "explanation": "The passage states that stepwells were developed to gain access to clean, fresh groundwater during the dry season.",
+      "passage_reference": "Paragraph 1"
+    },
+    {
+      "id": 2,
+      "passage_id": 1,
+      "type": "true_false_not_given",
+      "question_text": "Stepwells were only used by the highest classes of society.",
+      "correct_answer": "False",
+      "explanation": "The passage states that stepwells were places of gathering for villagers of all but the lowest classes, meaning they were used by most people, not just the highest classes.",
+      "passage_reference": "Paragraph 2"
+    },
+    {
+      "id": 3,
+      "passage_id": 1,
+      "type": "sentence_completion",
+      "question_text": "Stepwells are unique to the region of __________ and __________.",
+      "correct_answer": "Gujarat, Rajasthan",
+      "explanation": "The passage mentions that stepwells are found in Gujarat and Rajasthan.",
+      "passage_reference": "Paragraph 2"
+    },
+    {
+      "id": 4,
+      "passage_id": 1,
+      "type": "short_answer",
+      "question_text": "What are stepwells called in Gujarat?",
+      "correct_answer": "vav",
+      "explanation": "The passage states that in Gujarat they are called vav.",
+      "passage_reference": "Paragraph 2"
+    },
+    {
+      "id": 5,
+      "passage_id": 1,
+      "type": "short_answer",
+      "question_text": "What are stepwells called in Rajasthan?",
+      "correct_answer": "baori",
+      "explanation": "The passage states that in Rajasthan they are called baori.",
+      "passage_reference": "Paragraph 2"
+    }
+  ]
+}
