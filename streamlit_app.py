@@ -8,8 +8,16 @@ import sys
 # Add the backend directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
-# Import our models
+# Import our models with better error handling
 try:
+    # Try to import dotenv first
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        # If dotenv is not available, continue without it
+        pass
+    
     from backend.app.models.essay_scorer import EssayScorer
     from backend.app.models.feedback_generator import FeedbackGenerator
     from backend.app.models.listening_test_data import get_listening_test, get_all_listening_tests
