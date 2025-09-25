@@ -8,17 +8,21 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Import only lightweight models for deployment
 from .models.essay_scorer import EssayScorer
-from .models.ml_essay_scorer import MLEssayScorer
-from .models.production_essay_scorer import ProductionEssayScorer
-from .models.official_ielts_scorer import OfficialIELTSScorer
-from .models.hybrid_ielts_scorer import HybridIELTSScorer
-from .models.hybrid_essay_scorer import HybridEssayScorer
-from .models.quality_essay_scorer import QualityEssayScorer
-from .models.realistic_ielts_scorer import RealisticIELTSScorer
-from .models.optimized_semantic_analyzer import OptimizedSemanticAnalyzer
-from .models.optimized_feedback_generator import OptimizedFeedbackGenerator
 from .models.feedback_generator import FeedbackGenerator
+
+# Try to import ML models, but don't fail if they don't exist
+try:
+    from .models.ml_essay_scorer import MLEssayScorer
+    from .models.production_essay_scorer import ProductionEssayScorer
+    from .models.realistic_ielts_scorer import RealisticIELTSScorer
+    from .models.optimized_semantic_analyzer import OptimizedSemanticAnalyzer
+    from .models.optimized_feedback_generator import OptimizedFeedbackGenerator
+    ML_MODELS_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ ML models not available: {e}")
+    ML_MODELS_AVAILABLE = False
 # from .models.reading_test_data import get_reading_test, get_all_reading_tests, ReadingTest
 # from .models.reading_scorer import ReadingScorer, UserAnswer, ReadingTestResult
 
@@ -56,18 +60,24 @@ cambridge_audio_path = "/Users/shan/Desktop/Work/Projects/EdPrep AI/IELTS/Cambri
 if os.path.exists(cambridge_audio_path):
     app.mount("/audio", StaticFiles(directory=cambridge_audio_path), name="audio")
 
-# Initialize models
+# Initialize models - lightweight version for deployment
 essay_scorer = EssayScorer()
-ml_essay_scorer = MLEssayScorer()
-production_essay_scorer = ProductionEssayScorer()
-official_ielts_scorer = OfficialIELTSScorer()
-hybrid_ielts_scorer = HybridIELTSScorer(ml_scorer=ml_essay_scorer, production_scorer=production_essay_scorer, strict_mode=True)
-hybrid_essay_scorer = HybridEssayScorer()
-quality_essay_scorer = QualityEssayScorer()  # Primary quality model
-realistic_ielts_scorer = RealisticIELTSScorer()  # New realistic scorer
-optimized_semantic_analyzer = OptimizedSemanticAnalyzer()  # Fast semantic analysis
-optimized_feedback_generator = OptimizedFeedbackGenerator()  # Fast personalized feedback
 feedback_generator = FeedbackGenerator()
+
+# Initialize ML models only if available
+if ML_MODELS_AVAILABLE:
+    try:
+        ml_essay_scorer = MLEssayScorer()
+        production_essay_scorer = ProductionEssayScorer()
+        realistic_ielts_scorer = RealisticIELTSScorer()
+        optimized_semantic_analyzer = OptimizedSemanticAnalyzer()
+        optimized_feedback_generator = OptimizedFeedbackGenerator()
+        print("✅ ML models loaded successfully")
+    except Exception as e:
+        print(f"⚠️ Failed to load ML models: {e}")
+        ML_MODELS_AVAILABLE = False
+else:
+    print("⚠️ Using lightweight mode - ML models not available")
 # reading_scorer = ReadingScorer()  # Reading test scorer
 
 class EssaySubmission(BaseModel):
@@ -108,7 +118,7 @@ async def get_model_status():
     Get information about the scoring models
     """
     # Check which model is available
-    if production_essay_scorer.is_loaded:
+    if ML_MODELS_AVAILABLE and 'production_essay_scorer' in locals() and production_essay_scorer.is_loaded:
         return {
             "production_model_loaded": True,
             "official_ielts_model_loaded": True,
@@ -116,7 +126,7 @@ async def get_model_status():
             "model_path": str(production_essay_scorer.models_dir),
             "features": "535 advanced features + TF-IDF + Official IELTS Band Descriptors"
         }
-    elif ml_essay_scorer.is_loaded:
+    elif ML_MODELS_AVAILABLE and 'ml_essay_scorer' in locals() and ml_essay_scorer.is_loaded:
         return {
             "production_model_loaded": False,
             "basic_ml_model_loaded": True,
@@ -130,7 +140,7 @@ async def get_model_status():
             "production_model_loaded": False,
             "basic_ml_model_loaded": False,
             "official_ielts_model_loaded": True,
-            "scoring_method": "Official IELTS Criteria (Based on Official Band Descriptors)",
+            "scoring_method": "Official IELTS Criteria (Based on Official Band Descriptors) - Lightweight Mode",
             "model_path": None,
             "features": "Official IELTS Band Descriptors + Rule-based scoring"
         }
@@ -138,17 +148,25 @@ async def get_model_status():
 @app.post("/assess", response_model=ScoringResponse)
 async def assess_essay(essay_data: EssaySubmission):
     """
-    Assess an IELTS essay using realistic, strict IELTS criteria
+    Assess an IELTS essay using available models (lightweight mode for deployment)
     """
     try:
-        # Use Realistic IELTS Scorer (strict, authentic scoring) - FAST VERSION
-        scores = realistic_ielts_scorer.score_essay_realistic(
-            essay=essay_data.essay,
-            prompt=essay_data.prompt,
-            task_type=essay_data.task_type
-        )
+        # Use available scorer (ML if available, otherwise rule-based)
+        if ML_MODELS_AVAILABLE and 'realistic_ielts_scorer' in locals():
+            scores = realistic_ielts_scorer.score_essay_realistic(
+                essay=essay_data.essay,
+                prompt=essay_data.prompt,
+                task_type=essay_data.task_type
+            )
+        else:
+            # Fallback to rule-based scoring
+            scores = essay_scorer.score_essay(
+                essay=essay_data.essay,
+                prompt=essay_data.prompt,
+                task_type=essay_data.task_type
+            )
         
-        # Generate detailed feedback based on realistic scores
+        # Generate detailed feedback
         feedback = feedback_generator.generate_feedback(
             prompt=essay_data.prompt,
             essay=essay_data.essay,
