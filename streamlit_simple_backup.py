@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 import sys
 import re
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 
 # Page configuration
 st.set_page_config(
@@ -313,165 +313,87 @@ class AdvancedEssayScorer:
             'overall_band_score': 0.0  # Will be calculated
         }
 
-# Advanced Feedback Generator (Restored from Backend)
-class AdvancedFeedbackGenerator:
-    def __init__(self):
-        # Initialize OpenAI client if API key is available
-        self.openai_client = None
-        try:
-            if os.getenv("OPENAI_API_KEY"):
-                import openai
-                openai.api_key = os.getenv("OPENAI_API_KEY")
-                self.openai_client = openai
-        except ImportError:
-            print("OpenAI not available - using rule-based feedback only")
-    
-    def generate_feedback(self, prompt: str, essay: str, scores: Dict[str, float], task_type: str = "Task 2") -> Dict[str, Any]:
-        """Generate comprehensive feedback for an essay"""
-        try:
-            # Generate detailed feedback using AI if available, otherwise use rule-based
-            if self.openai_client:
-                detailed_feedback = self._generate_ai_feedback(prompt, essay, scores, task_type)
-            else:
-                detailed_feedback = self._generate_rule_based_feedback(prompt, essay, scores, task_type)
-            
-            # Generate specific suggestions
-            suggestions = self._generate_suggestions(essay, scores)
-            
-            return {
-                "detailed_feedback": detailed_feedback,
-                "suggestions": suggestions,
-                "feedback": detailed_feedback  # For compatibility
-            }
-            
-        except Exception as e:
-            print(f"Error generating feedback: {e}")
-            return {
-                "detailed_feedback": "Feedback generation failed. Please try again.",
-                "suggestions": ["Review your essay for grammar and vocabulary errors."],
-                "feedback": "Feedback generation failed. Please try again."
-            }
-    
-    def _generate_ai_feedback(self, prompt: str, essay: str, scores: Dict[str, float], task_type: str) -> str:
-        """Generate feedback using OpenAI API"""
-        try:
-            system_prompt = f"""You are an expert IELTS writing examiner. Provide detailed feedback for this {task_type} essay based on the IELTS scoring criteria.
-
-The essay scored:
-- Task Achievement: {scores['task_achievement']}/9
-- Coherence and Cohesion: {scores['coherence_cohesion']}/9  
-- Lexical Resource: {scores['lexical_resource']}/9
-- Grammatical Range and Accuracy: {scores['grammatical_range_accuracy']}/9
-- Overall Band Score: {scores['overall_band_score']}/9
-
-Provide constructive feedback focusing on:
-1. What the student did well
-2. Specific areas for improvement
-3. Actionable advice for each scoring criterion
-4. Examples of how to improve
-
-Keep the feedback encouraging but honest, and provide specific examples from the essay."""
-
-            response = self.openai_client.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Prompt: {prompt}\n\nEssay: {essay}"}
-                ],
-                max_tokens=800,
-                temperature=0.7
-            )
-            
-            return response.choices[0].message.content.strip()
-            
-        except Exception as e:
-            print(f"OpenAI API error: {e}")
-            return self._generate_rule_based_feedback(prompt, essay, scores, task_type)
-    
-    def _generate_rule_based_feedback(self, prompt: str, essay: str, scores: Dict[str, float], task_type: str) -> str:
-        """Generate feedback using rule-based approach"""
-        feedback_parts = []
+# Simple Feedback Generator
+class SimpleFeedbackGenerator:
+    def generate_feedback(self, prompt: str, essay: str, scores: Dict[str, float], task_type: str) -> Dict[str, str]:
+        """Generate simple feedback based on scores"""
+        word_count = len(essay.split())
         
-        # Overall assessment
-        overall_score = scores['overall_band_score']
-        if overall_score >= 7.0:
-            feedback_parts.append("**Overall Assessment:** This is a strong essay that demonstrates good English proficiency.")
-        elif overall_score >= 6.0:
-            feedback_parts.append("**Overall Assessment:** This is a good essay with room for improvement in several areas.")
-        elif overall_score >= 5.0:
-            feedback_parts.append("**Overall Assessment:** This essay shows basic competence but needs significant improvement.")
-        else:
-            feedback_parts.append("**Overall Assessment:** This essay needs substantial improvement to meet IELTS standards.")
+        # Check if this is a very low-quality essay
+        if any(score <= 2.0 for score in scores.values()):
+            return {
+                'feedback': "**This essay appears to be of very low quality or may contain gibberish. Please write a proper essay with meaningful content, correct grammar, and relevant ideas that address the prompt.**",
+                'detailed_feedback': "**This essay appears to be of very low quality or may contain gibberish. Please write a proper essay with meaningful content, correct grammar, and relevant ideas that address the prompt.**"
+            }
+        
+        feedback_parts = []
         
         # Task Achievement feedback
         ta_score = scores['task_achievement']
-        if ta_score < 6.0:
-            feedback_parts.append(f"**Task Achievement ({ta_score}/9):** The essay doesn't fully address the task requirements. Make sure to:")
-            feedback_parts.append("- Clearly state your position in the introduction")
-            feedback_parts.append("- Develop your arguments with specific examples")
-            feedback_parts.append("- Write at least 250 words for Task 2")
-            if task_type == "Task 2":
-                feedback_parts.append("- Include a clear conclusion that summarizes your main points")
+        if ta_score <= 3.0:
+            feedback_parts.append("**Task Achievement**: Your essay does not adequately address the prompt. You need to write a complete essay with relevant content that answers the question.")
+        elif ta_score < 5.0:
+            feedback_parts.append("**Task Achievement**: Your essay needs to better address the prompt. Make sure to cover all parts of the question and provide relevant examples.")
+        elif ta_score < 6.5:
+            feedback_parts.append("**Task Achievement**: Good attempt at addressing the prompt. Try to provide more specific examples and ensure all parts of the question are covered.")
+        else:
+            feedback_parts.append("**Task Achievement**: Well done! You have effectively addressed the prompt with relevant content.")
         
-        # Coherence and Cohesion feedback
+        # Coherence & Cohesion feedback
         cc_score = scores['coherence_cohesion']
-        if cc_score < 6.0:
-            feedback_parts.append(f"**Coherence and Cohesion ({cc_score}/9):** Improve the organization and flow of your essay:")
-            feedback_parts.append("- Use clear paragraph structure (introduction, body paragraphs, conclusion)")
-            feedback_parts.append("- Add linking words like 'however', 'therefore', 'moreover', 'furthermore'")
-            feedback_parts.append("- Start each paragraph with a clear topic sentence")
+        if cc_score <= 3.0:
+            feedback_parts.append("**Coherence & Cohesion**: Your essay lacks proper structure and organization. Write complete sentences and organize your ideas into clear paragraphs.")
+        elif cc_score < 5.0:
+            feedback_parts.append("**Coherence & Cohesion**: Your essay needs better organization. Use more linking words and ensure clear paragraph structure.")
+        elif cc_score < 6.5:
+            feedback_parts.append("**Coherence & Cohesion**: Good organization overall. Try using more linking words to connect your ideas better.")
+        else:
+            feedback_parts.append("**Coherence & Cohesion**: Excellent organization and use of linking words to connect ideas.")
         
         # Lexical Resource feedback
         lr_score = scores['lexical_resource']
-        if lr_score < 6.0:
-            feedback_parts.append(f"**Lexical Resource ({lr_score}/9):** Expand your vocabulary:")
-            feedback_parts.append("- Use more varied and precise vocabulary")
-            feedback_parts.append("- Avoid repeating the same words")
-            feedback_parts.append("- Include some academic vocabulary appropriate for the topic")
-            feedback_parts.append("- Check word choice for accuracy")
+        if lr_score <= 3.0:
+            feedback_parts.append("**Lexical Resource**: Your vocabulary is very limited. Use proper English words and avoid repetition. Write meaningful sentences.")
+        elif lr_score < 5.0:
+            feedback_parts.append("**Lexical Resource**: Try to use more varied vocabulary and avoid repetition. Include more academic words.")
+        elif lr_score < 6.5:
+            feedback_parts.append("**Lexical Resource**: Good vocabulary range. Try to use more sophisticated and academic vocabulary.")
+        else:
+            feedback_parts.append("**Lexical Resource**: Excellent vocabulary range with sophisticated word choices.")
         
-        # Grammatical Range and Accuracy feedback
-        gra_score = scores['grammatical_range_accuracy']
-        if gra_score < 6.0:
-            feedback_parts.append(f"**Grammatical Range and Accuracy ({gra_score}/9):** Improve your grammar:")
-            feedback_parts.append("- Use a variety of sentence structures (simple, compound, complex)")
-            feedback_parts.append("- Check subject-verb agreement")
-            feedback_parts.append("- Use correct verb tenses consistently")
-            feedback_parts.append("- Proofread for spelling and punctuation errors")
+        # Grammatical Range feedback
+        gr_score = scores['grammatical_range_accuracy']
+        if gr_score <= 3.0:
+            feedback_parts.append("**Grammatical Range**: Your grammar needs significant improvement. Write complete, grammatically correct sentences.")
+        elif gr_score < 5.0:
+            feedback_parts.append("**Grammatical Range**: Work on using more complex sentence structures and check for grammatical errors.")
+        elif gr_score < 6.5:
+            feedback_parts.append("**Grammatical Range**: Good grammatical control. Try to use more varied sentence structures.")
+        else:
+            feedback_parts.append("**Grammatical Range**: Excellent grammatical control with varied sentence structures.")
         
-        return "\n\n".join(feedback_parts)
-    
-    def _generate_suggestions(self, essay: str, scores: Dict[str, float]) -> List[str]:
-        """Generate specific improvement suggestions"""
-        suggestions = []
+        # Word count feedback
+        if task_type == "Task 1":
+            if word_count < 150:
+                feedback_parts.append(f"**Word Count**: You have {word_count} words. Task 1 requires at least 150 words.")
+            else:
+                feedback_parts.append(f"**Word Count**: Good! You have {word_count} words, which meets the minimum requirement.")
+        else:
+            if word_count < 250:
+                feedback_parts.append(f"**Word Count**: You have {word_count} words. Task 2 requires at least 250 words.")
+            else:
+                feedback_parts.append(f"**Word Count**: Good! You have {word_count} words, which meets the minimum requirement.")
         
-        # Word count suggestion
-        word_count = len(essay.split())
-        if word_count < 250:
-            suggestions.append(f"Write more content - you have {word_count} words, aim for at least 250 words")
-        
-        # Vocabulary suggestions
-        if scores['lexical_resource'] < 6.0:
-            suggestions.append("Use more varied vocabulary and avoid repetition")
-            suggestions.append("Include some academic vocabulary appropriate for the topic")
-        
-        # Grammar suggestions
-        if scores['grammatical_range_accuracy'] < 6.0:
-            suggestions.append("Use a variety of sentence structures")
-            suggestions.append("Check for grammatical errors and proofread carefully")
-        
-        # Structure suggestions
-        if scores['coherence_cohesion'] < 6.0:
-            suggestions.append("Improve paragraph structure and use linking words")
-            suggestions.append("Ensure each paragraph has a clear topic sentence")
-        
-        return suggestions
+        return {
+            'feedback': '\n\n'.join(feedback_parts),
+            'detailed_feedback': '\n\n'.join(feedback_parts)
+        }
 
 # Initialize models
 @st.cache_resource
 def load_models():
-    essay_scorer = AdvancedEssayScorer()
-    feedback_generator = AdvancedFeedbackGenerator()
+    essay_scorer = SimpleEssayScorer()
+    feedback_generator = SimpleFeedbackGenerator()
     return essay_scorer, feedback_generator
 
 # Main app
@@ -590,14 +512,8 @@ def display_writing_results(scores, feedback, essay_text):
     # Detailed feedback
     st.markdown('<div class="section-header">💡 Detailed Feedback</div>', unsafe_allow_html=True)
     st.markdown('<div class="feedback-box">', unsafe_allow_html=True)
-    st.markdown(feedback.get('detailed_feedback', feedback.get('feedback', 'No feedback available')))
+    st.markdown(feedback.get('feedback', feedback.get('detailed_feedback', 'No feedback available')))
     st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Suggestions
-    if 'suggestions' in feedback and feedback['suggestions']:
-        st.markdown('<div class="section-header">💡 Improvement Suggestions</div>', unsafe_allow_html=True)
-        for suggestion in feedback['suggestions']:
-            st.markdown(f"• {suggestion}")
 
 def about_section():
     st.markdown('<div class="section-header">ℹ️ About EdPrep AI</div>', unsafe_allow_html=True)
@@ -617,10 +533,9 @@ def about_section():
     
     ### 🚀 Technology
     
-    - **AI-Powered Scoring**: Advanced rule-based scoring system with ML capabilities
+    - **AI-Powered Scoring**: Advanced rule-based scoring system
     - **Official IELTS Criteria**: Scoring based on official IELTS band descriptors
     - **Detailed Feedback**: Personalized feedback to help you improve
-    - **OpenAI Integration**: Enhanced feedback generation when API key is available
     
     ### 📊 Scoring System
     
@@ -652,10 +567,9 @@ def about_section():
     
     ### 🔧 Technical Details
     
-    - **Backend**: Python with advanced rule-based scoring system
+    - **Backend**: Python with rule-based scoring system
     - **Frontend**: Streamlit for easy interaction
-    - **Scoring**: Hybrid system with vocabulary analysis, grammar checking, and content relevance
-    - **AI Integration**: OpenAI API for enhanced feedback generation
+    - **Scoring**: Rule-based system with vocabulary analysis, grammar checking, and content relevance
     
     ### 📞 Support
     
