@@ -2,19 +2,10 @@
 
 import { useState } from 'react';
 
-interface ScoringResult {
-  task_achievement: number;
-  coherence_cohesion: number;
-  lexical_resource: number;
-  grammatical_range_accuracy: number;
-  overall_band_score: number;
-  feedback: string;
-}
-
 export default function Home() {
   const [essay, setEssay] = useState('');
   const [prompt, setPrompt] = useState('Some people believe that technology has made our lives more complicated, while others think it has made life easier. Discuss both views and give your opinion.');
-  const [result, setResult] = useState<ScoringResult | null>(null);
+  const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,8 +20,7 @@ export default function Home() {
     setResult(null);
 
     try {
-      const apiUrl = 'https://edprep-ai-backend.onrender.com';
-      const response = await fetch(`${apiUrl}/assess`, {
+      const response = await fetch('https://edprep-ai-backend.onrender.com/assess', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,30 +101,30 @@ export default function Home() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-white p-4 rounded-lg shadow">
                     <div className="text-sm text-gray-600">Task Achievement</div>
-                    <div className="text-2xl font-bold text-blue-600">{result.task_achievement.toFixed(1)}</div>
+                    <div className="text-2xl font-bold text-blue-600">{result.task_achievement?.toFixed(1) || 'N/A'}</div>
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow">
                     <div className="text-sm text-gray-600">Coherence & Cohesion</div>
-                    <div className="text-2xl font-bold text-blue-600">{result.coherence_cohesion.toFixed(1)}</div>
+                    <div className="text-2xl font-bold text-blue-600">{result.coherence_cohesion?.toFixed(1) || 'N/A'}</div>
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow">
                     <div className="text-sm text-gray-600">Lexical Resource</div>
-                    <div className="text-2xl font-bold text-blue-600">{result.lexical_resource.toFixed(1)}</div>
+                    <div className="text-2xl font-bold text-blue-600">{result.lexical_resource?.toFixed(1) || 'N/A'}</div>
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow">
                     <div className="text-sm text-gray-600">Grammar Range</div>
-                    <div className="text-2xl font-bold text-blue-600">{result.grammatical_range_accuracy.toFixed(1)}</div>
+                    <div className="text-2xl font-bold text-blue-600">{result.grammatical_range?.toFixed(1) || 'N/A'}</div>
                   </div>
                 </div>
 
                 <div className="bg-blue-100 p-4 rounded-lg mb-4">
                   <div className="text-lg font-semibold text-blue-800">Overall Band Score</div>
-                  <div className="text-3xl font-bold text-blue-600">{result.overall_band_score.toFixed(1)}</div>
+                  <div className="text-3xl font-bold text-blue-600">{result.overall_band_score?.toFixed(1) || 'N/A'}</div>
                 </div>
 
                 <div className="bg-yellow-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-gray-800 mb-2">Feedback:</h3>
-                  <div className="text-gray-700 whitespace-pre-wrap">{result.feedback}</div>
+                  <div className="text-gray-700 whitespace-pre-wrap">{result.feedback || 'No feedback available'}</div>
                 </div>
               </div>
             )}
