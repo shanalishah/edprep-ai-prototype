@@ -8,7 +8,8 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Import only lightweight models for deployment
+# Import enhanced models
+from .models.enhanced_essay_scorer import EnhancedEssayScorer
 from .models.essay_scorer import EssayScorer
 from .models.feedback_generator import FeedbackGenerator
 
@@ -31,8 +32,8 @@ if not DEPLOYMENT_MODE:
 else:
     print("🚀 Deployment mode: Skipping ML model imports")
     ML_MODELS_AVAILABLE = False
-# from .models.reading_test_data import get_reading_test, get_all_reading_tests, ReadingTest
-# from .models.reading_scorer import ReadingScorer, UserAnswer, ReadingTestResult
+from .models.reading_test_data import get_reading_test, get_all_reading_tests, ReadingTest
+from .models.reading_scorer import ReadingScorer, UserAnswer, ReadingTestResult
 
 # Import listening test components
 from .models.listening_test_data import get_listening_test, get_all_listening_tests
@@ -62,7 +63,7 @@ if os.path.exists(cambridge_audio_path):
     app.mount("/audio", StaticFiles(directory=cambridge_audio_path), name="audio")
 
 # Initialize models - lightweight version for deployment
-essay_scorer = EssayScorer()
+essay_scorer = EnhancedEssayScorer()
 feedback_generator = FeedbackGenerator()
 
 # Initialize ML models only if available and not in deployment mode
@@ -82,7 +83,7 @@ else:
         print("🚀 Deployment mode: Using lightweight rule-based scoring only")
     else:
         print("⚠️ Using lightweight mode - ML models not available")
-# reading_scorer = ReadingScorer()  # Reading test scorer
+reading_scorer = ReadingScorer()  # Reading test scorer
 
 class EssaySubmission(BaseModel):
     prompt: str
